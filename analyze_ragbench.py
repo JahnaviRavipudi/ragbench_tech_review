@@ -116,15 +116,17 @@ def compute_retrieval_relevance(ranked_keys, relevant_keys):
     return len(retrieved_set & relevant_set) / len(retrieved_set)
 
 
-def compute_retrieval_utilization(ranked_keys, relevant_keys, utilized_keys):
+def compute_retrieval_utilization(ranked_keys, utilized_keys):
+    """Compute context utilization: fraction of retrieved context that is utilized.
+    
+    Per TRACe definition: Utilization = len(utilized ∩ retrieved) / len(retrieved)
+    """
     retrieved_set = set(ranked_keys)
-    relevant_set = set(relevant_keys)
     utilized_set = set(utilized_keys)
 
-    relevant_and_retrieved = retrieved_set & relevant_set
-    if len(relevant_and_retrieved) == 0:
+    if len(retrieved_set) == 0:
         return 0.0
-    return len(relevant_and_retrieved & utilized_set) / len(relevant_and_retrieved)
+    return len(retrieved_set & utilized_set) / len(retrieved_set)
 
 
 def retrieve_parent_documents(ranked_sentence_keys, documents, sent_to_doc, top_k_docs=None):
@@ -163,7 +165,7 @@ def compute_retrieval_metrics_for_example(example, model, k_values=[2, 4]):
         label = f'bm25_k{k}'
         top_keys = [r[0] for r in bm25_ranked[:k]]
         rel = compute_retrieval_relevance(top_keys, relevant_keys)
-        util = compute_retrieval_utilization(top_keys, relevant_keys, utilized_keys)
+        util = compute_retrieval_utilization(top_keys, utilized_keys)
         results[label] = {
             'relevance': rel,
             'utilization': util,
@@ -177,7 +179,7 @@ def compute_retrieval_metrics_for_example(example, model, k_values=[2, 4]):
         label = f'dense_k{k}'
         top_keys = [r[0] for r in dense_ranked[:k]]
         rel = compute_retrieval_relevance(top_keys, relevant_keys)
-        util = compute_retrieval_utilization(top_keys, relevant_keys, utilized_keys)
+        util = compute_retrieval_utilization(top_keys, utilized_keys)
         results[label] = {
             'relevance': rel,
             'utilization': util,
